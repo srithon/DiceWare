@@ -8,9 +8,9 @@ def check_word(word):
 def main():
     with open('WordList20k', 'r') as word_list:
         with open('FilteredWordList20k', 'w+') as filtered_word_list:
-            word = word_list.readline()
-            if check_word(word):
-                filtered_word_list.write(word)
-                filtered_word_list.write('\n')
+            for word in word_list:
+                if check_word(word):
+                    filtered_word_list.write(word)
+                    #filtered_word_list.write('\n')
 
 main()
