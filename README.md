@@ -1,4 +1,4 @@
-# DiceWare
+# DiceWareCLI
 A Command-line tool for generating DiceWare passwords
   
 DiceWare is a password creation scheme created by Arnold G. Reinhold which builds passwords out of random words. The focal
