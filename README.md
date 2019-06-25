@@ -10,6 +10,7 @@ combination of rolls. Using a command-line tool like this is a lot easier.
 Word lists were gotten from:
  - https://github.com/first20hours/google-10000-english/blob/master/20k.txt
  - https://github.com/first20hours/google-10000-english/blob/master/google-10000-english-usa-no-swears-medium.txt  
+ 
 They were then filtered to remove words less than 4 characters and greater than 8 characters.  
 *Usage*
 Since the source code is written in C, it would most likely be necessary to compile it manually.  
