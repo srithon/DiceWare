@@ -10,6 +10,6 @@ Word lists were gotten from:
 They were then filtered to remove words less than 4 characters and greater than 8 characters.  
 *Usage*  
 
-Since the source code is written in C, it will most likely be necessary to compile it manually to use. However, if by some miracle you are running 64-bit Ubuntu, you may be able to run the pre-compiled binary.
+Since the code is written in C and not a JVM language, it will most likely be necessary to compile it manually. However, if by some miracle you are running 64-bit Ubuntu, you may be able to run the pre-compiled binary.
 If you are on Windows, putting your compiled code into your PATH will allow you to call it from any directory.
 To generate passwords, run the compiled program with the number of words you would like to generate as the first argument.
