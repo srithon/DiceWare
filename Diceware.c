@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-char** getWords(int n);
+char*** getPasswords(int passwordLength, int numPasswords);
 char* getRandomWord(FILE* fp, int fileLength);
 FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
@@ -21,6 +21,12 @@ int main(int argc, char ** argv)
 	
 
 	int n = strtol(argv[1], (char**) NULL, 10);
+	int numPasswords = 1;
+
+	if (argc > 2)
+	{
+		numPasswords = strtol(argv[2], (char**) NULL, 10);
+	}
 
 	if (n < 0)
 	{
@@ -28,38 +34,50 @@ int main(int argc, char ** argv)
 		return 1;
 	}
 
-	char** words = getWords(n);
+	char*** passwords = getPasswords(n, numPasswords);
 
-	int i;
+	int word, password;
 
-	for (i = 0; i < n; i++)
+	for (password = 0; password < numPasswords; password++)
 	{
-		printf("%s ", words[i]);
-		free(words[i]);
+		for (word = 0; word < n; word++)
+		{
+			printf("%s ", passwords[password][word]);
+			free(passwords[password][word]);
+		}
+
+		free(passwords[password]);
+		printf("\n");
 	}
 
-	free(words);
+	free(passwords);
 
 	printf("\n");
 
 	return 0;
 }
 
-char** getWords(int n)
+char*** getPasswords(int n, int numPasswords)
 {
 	FILE* fp = openFile("WordListFinal", "r");
         int fileLength = lengthOfFile(fp);
 	srand(time(0));
-	char** words = malloc(n * sizeof(char*));
-	int i;
-	for (i = 0; i < n; i++)
+	//char** words = malloc(n * sizeof(char*));
+	char*** passwords = malloc(numPasswords * sizeof(char**));
+
+	int i, j;
+	for (j = 0; j < numPasswords; j++)
 	{
-		words[i] = getRandomWord(fp, fileLength);
-		//printf(words[i] + " ");
-		//free(words[i]);
+		passwords[j] = malloc(n * sizeof(char*));
+		for (i = 0; i < n; i++)
+		{
+			passwords[j][i] = getRandomWord(fp, fileLength);
+			//printf(words[i] + " ");
+			//free(words[i]);
+		}
 	}
 	fclose(fp);
-	return words;
+	return passwords;
 }
 
 /*
