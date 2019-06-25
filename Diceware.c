@@ -2,20 +2,29 @@
 #include <stdlib.h>
 #include <time.h>
 
+char** getWords(int n);
+char* getRandomWord(FILE* fp, int fileLength);
+FILE* openFile(char* fileName, char* openType);
+int lengthOfFile(FILE* fp);
+
 // pass in number of words
 int main(int argc, char ** argv)
 {
 	if (argc == 1)
 	{
-		printf("Pass in the number of words wanted!");
+		printf("Pass in the number of words wanted!\n");
 		return 1;
 	}
+	
+	// this only reads the first digit
+	//int n = *argv[1] - '0';
+	
 
-	int n = *argv[1] - '0';
+	int n = strtol(argv[1], (char**) NULL, 10);
 
 	if (n < 0)
 	{
-		printf("Please pass in a positive number of words");
+		printf("Please pass in a positive number of words\n");
 		return 1;
 	}
 
@@ -25,9 +34,13 @@ int main(int argc, char ** argv)
 
 	for (i = 0; i < n; i++)
 	{
-		printf(words[i] + " ");
+		printf("%s ", words[i]);
 		free(words[i]);
 	}
+
+	free(words);
+
+	printf("\n");
 
 	return 0;
 }
@@ -45,6 +58,7 @@ char** getWords(int n)
 		//printf(words[i] + " ");
 		//free(words[i]);
 	}
+	fclose(fp);
 	return words;
 }
 
@@ -69,6 +83,8 @@ char* getRandomWord(FILE* fp, int fileLength)
 	{
 		word[currentIndex] = currentChar;
 		currentIndex++;
+		if (currentIndex == 7)
+			break;
 	}
 	return word;
 }
@@ -80,7 +96,7 @@ FILE* openFile(char* fileName, char* openType)
 	if (file == NULL)
 	{
 		printf("File could not be opened.");
-		return 1;
+		exit(1);
 	}
 
 	return file;
