@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 char*** getPasswords(int passwordLength, int numPasswords);
 char* getRandomWord(FILE* fp, int fileLength);
 FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
+void transformPassword(char** password, char* transformationTable);
+char randomSpecialCharacter();
 
 // pass in number of words
 int main(int argc, char ** argv)
@@ -22,10 +25,67 @@ int main(int argc, char ** argv)
 
 	int n = strtol(argv[1], (char**) NULL, 10);
 	int numPasswords = 1;
+	signed char transformationTable[127];
+	char transform = 0; //not transforming
+
+	for (int i = 0; i < 127; i++)
+		transformationTable[i] = 0;
 
 	if (argc > 2)
 	{
 		numPasswords = strtol(argv[2], (char**) NULL, 10);
+		
+		if (argc > 3)
+		{
+			FILE* transformationFile;
+			transformationFile = fopen(argv[3], "r");
+			
+			if (transformationFile == NULL)
+			{
+				printf("Could not open transformation file.");
+				return 1;
+			}
+
+			transform = 1; //transforming
+
+			char currentChar;
+			//currentChar = fgetc(transformationFile);
+			//fseek(transformationFile, 1, SEEK_CUR);
+			char buffer[3];
+			int currentPos = 0;
+			char temp;
+			while ((currentChar = fgetc(transformationFile)) != EOF && currentChar != 0)
+			{
+				printf("Current Char: %c (%d)\n", currentChar, currentChar);
+				fseek(transformationFile, 1, SEEK_CUR); //skip the colon
+				while ((temp = fgetc(transformationFile)) != '\n')
+					buffer[currentPos++] = temp;
+				if (currentPos == 1)
+				{
+					transformationTable[currentChar] = buffer[0];
+					printf("Mapped: %c -> %c\n", currentChar, buffer[0]);
+				}
+				else
+				{
+					// if -1, then random special character
+					if (strcmp(buffer, "{_}") == 0)
+					{
+						printf("buffer = {_}\n");
+						transformationTable[currentChar] = -1;
+					}
+				}
+
+				currentPos = 0;
+			}
+		}
+	}
+
+	for (int i = 0; i < 127; i++)
+	{
+		if (transformationTable[i] == 0)
+			transformationTable[i] = i;
+
+		printf("%c (%d) ->  %c (%d)\n", i, i, transformationTable[i], transformationTable[i]);
 	}
 
 	if (n < 0)
@@ -40,6 +100,9 @@ int main(int argc, char ** argv)
 
 	for (password = 0; password < numPasswords; password++)
 	{
+		if (transform == 1)
+			transformPassword(passwords[password], transformationTable);
+		
 		for (word = 0; word < n; word++)
 		{
 			printf("%s ", passwords[password][word]);
@@ -80,6 +143,21 @@ char*** getPasswords(int n, int numPasswords)
 	return passwords;
 }
 
+void transformPassword(char** password, char* transformationTable)
+{
+	for (int i = 0; i < sizeof(password) / sizeof(password[0]); i++)
+	{
+		if (random() % 3 == 0) // 33% chance
+		{
+			//printf("Character that random rolled for: %c (%d) -> (%d)\n", *password[i], *password[i], transformationTable[*password[i]]);
+			if (*password[i] == -1)
+				*password[i] = randomSpecialCharacter();
+			else
+				*password[i] = transformationTable[*password[i]];
+		}
+	}
+}
+
 /*
  * Consider weighting words
  * so that words in the beginning
@@ -118,6 +196,14 @@ FILE* openFile(char* fileName, char* openType)
 	}
 
 	return file;
+}
+
+char randomSpecialCharacter()
+{
+	static const char* specialCharacters = "!@#$%^&*()_+{}|:<>?~`";
+	char ret = specialCharacters[random() % (sizeof(specialCharacters) / sizeof(specialCharacters[0]))];
+	printf("Random special character returned: %c (%d)", ret, ret);
+	return ret;
 }
 
 int lengthOfFile(FILE* fp)
