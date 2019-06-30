@@ -242,7 +242,9 @@ char* getRandomWord(FILE* fp, int fileLength)
 	if (currentChar == EOF)
 		fseek(fp, ftell(fp) - (rand() % 100), SEEK_SET);
 	// 8 because max word size is 8 + 1 because null character?
-	char* word = calloc(9, sizeof(char));
+	char* word = malloc(9 * sizeof(char));
+	//13.539 seconds with calloc
+	//12.974 seconds with malloc
 	int currentIndex = 0;
 	while ((currentChar = fgetc(fp)) != '\n' && currentChar != EOF)
 	{
@@ -252,6 +254,8 @@ char* getRandomWord(FILE* fp, int fileLength)
 		//if (currentIndex == 7)
 		//	break;
 	}
+
+	word[currentIndex] = 0;
 	//word[currentIndex] = 0; // null character
 
 	return word;
