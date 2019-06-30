@@ -9,7 +9,7 @@ FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
 void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
-void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer);
+void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
 // this function frees all of the words while it is creating the final string
 void testFile();
 
@@ -80,6 +80,8 @@ int main(int argc, char ** argv)
 				currentPos = 0;
 			}
 
+			fclose(transformationFile);
+
 			for (int i = 0; i < 127; i++)
 			{
 				if (transformationTable[i] == 0)
@@ -101,9 +103,12 @@ int main(int argc, char ** argv)
 	int word, password;
 
 	char* transformedPassword;
+	int bufferSize = 10 * n - 1;
 
 	if (transform == 1)
-		transformedPassword = calloc((10 * n) - 1, sizeof(char));
+	{
+		transformedPassword = calloc(bufferSize, sizeof(char));
+	}
 		// 9 chars: (8 char max word length + 1 null character + 1 dividing character) - 1 because no dividing character at the end
 
 	for (password = 0; password < numPasswords; password++)
@@ -114,7 +119,7 @@ int main(int argc, char ** argv)
 		if (transform == 1)
 		{
 			//this function frees all the words!
-			semiDestructiveTransformPassword(passwords[password], n, transformationTable, transformedPassword);
+			semiDestructiveTransformPassword(passwords[password], n, transformationTable, transformedPassword, bufferSize);
 			printf("%s\n", transformedPassword);
 		}
 		else
@@ -191,7 +196,7 @@ void transformPassword(char** password, char* transformationTable)
 	}
 }
 
-void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer)
+void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize)
 {
 	unsigned char transformationCharacter = 0;
 	unsigned int currentIndex = 0;
@@ -223,6 +228,9 @@ void semiDestructiveTransformPassword(char** wordList, int numWords, char* trans
 
 		free(wordList[i]);
 	}
+
+	for (int i = currentIndex; i < bufferSize; i++)
+		destinationBuffer[i] = 0;
 
 	//free(wordList);		already freeing in calling function
 }
