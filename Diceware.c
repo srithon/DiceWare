@@ -9,8 +9,9 @@ FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
 void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
-void semiDestructiveTransformPassword(char** wordList, char* transformationTable, char* destinationBuffer);
+void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer);
 // this function frees all of the words while it is creating the final string
+void testFile();
 
 // pass in number of words
 int main(int argc, char ** argv)
@@ -20,10 +21,10 @@ int main(int argc, char ** argv)
 		printf("Pass in the number of words wanted!\n");
 		return 1;
 	}
-	
+
 	// this only reads the first digit
 	//int n = *argv[1] - '0';
-	
+
 
 	int n = strtol(argv[1], (char**) NULL, 10);
 	int numPasswords = 1;
@@ -36,11 +37,11 @@ int main(int argc, char ** argv)
 	if (argc > 2)
 	{
 		numPasswords = strtol(argv[2], (char**) NULL, 10);
-		
+
 		if (argc > 3)
 		{
 			FILE* transformationFile = fopen(argv[3], "r");
-			
+
 			if (transformationFile == NULL)
 			{
 				printf("Could not open transformation file.");
@@ -78,15 +79,15 @@ int main(int argc, char ** argv)
 
 				currentPos = 0;
 			}
+
+			for (int i = 0; i < 127; i++)
+			{
+				if (transformationTable[i] == 0)
+					transformationTable[i] = i;
+
+				printf("%c (%d) ->  %c (%d)\n", i, i, transformationTable[i], transformationTable[i]);
+			}
 		}
-	}
-
-	for (int i = 0; i < 127; i++)
-	{
-		if (transformationTable[i] == 0)
-			transformationTable[i] = i;
-
-		printf("%c (%d) ->  %c (%d)\n", i, i, transformationTable[i], transformationTable[i]);
 	}
 
 	if (n <= 0)
@@ -109,11 +110,11 @@ int main(int argc, char ** argv)
 	{
 		//if (transform == 1)
 		//	transformPassword(passwords[password], transformationTable);
-		
+
 		if (transform == 1)
 		{
 			//this function frees all the words!
-			semiDestructiveTransformPassword(passwords[password], transformationTable, transformedPassword);
+			semiDestructiveTransformPassword(passwords[password], n, transformationTable, transformedPassword);
 			printf("%s\n", transformedPassword);
 		}
 		else
@@ -137,6 +138,19 @@ int main(int argc, char ** argv)
 	printf("\n");
 
 	return 0;
+}
+
+void testFile()
+{
+	FILE* fp = openFile("WordListFinal", "r");
+	char currentChar;
+	while ((currentChar = fgetc(fp)) != EOF)
+	{
+		if (currentChar == 10)
+			continue;
+		if (!(currentChar >= 'a' && currentChar <= 'z' || currentChar >= 'A' && currentChar <= 'Z'))
+			printf("Char: %c", currentChar);
+	}
 }
 
 char*** getPasswords(int n, int numPasswords)
@@ -177,24 +191,25 @@ void transformPassword(char** password, char* transformationTable)
 	}
 }
 
-void semiDestructiveTransformPassword(char** wordList, char* transformationTable, char* destinationBuffer)
+void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer)
 {
 	unsigned char transformationCharacter = 0;
 	unsigned int currentIndex = 0;
 	char transformSpace = transformationTable[' '];
-	for (int i = 0; i < sizeof(wordList) / sizeof(wordList[0]); i++)
+	for (int i = 0; i < numWords; i++)
 	{
+		//printf("i: %d; Original Word: %s\n", i, wordList[i]);
 		if (i != 0)
 			if (transformSpace != ' ' && random() % 3 == 0)
 				destinationBuffer[currentIndex++] = (transformSpace == -1) ? randomSpecialCharacter() : transformSpace;
 			else
 				destinationBuffer[currentIndex++] = ' ';
-		for (int j = 0; j < sizeof(wordList[i]) / sizeof(wordList[i][0]) - 1; j++, currentIndex++) // -1 because last character is a null character
+		for (int j = 0; j < strlen(wordList[i]); j++, currentIndex++) // -1 because last character is a null character
 		{
 			if (random() % 3 == 0)
 			{
 				transformationCharacter = transformationTable[wordList[i][j]];
-				
+
 				destinationBuffer[currentIndex] =
 					(transformationCharacter == -1) ?
 						randomSpecialCharacter() : transformationCharacter;
@@ -203,9 +218,10 @@ void semiDestructiveTransformPassword(char** wordList, char* transformationTable
 			{
 				destinationBuffer[currentIndex] = wordList[i][j];
 			}
+			//printf("i: %d; destinationBuffer: %s\n", i, destinationBuffer);
 		}
-		
-		free(wordList[i]);	
+
+		free(wordList[i]);
 	}
 
 	//free(wordList);		already freeing in calling function
@@ -222,28 +238,29 @@ char* getRandomWord(FILE* fp, int fileLength)
 {
 	fseek(fp, rand() % fileLength, SEEK_SET);
 	char currentChar;
-       	while ((currentChar = fgetc(fp)) != '\n')
-		if (currentChar == EOF)
-			fseek(fp, ftell(fp) - (rand() % 100), SEEK_SET);
-	// 8 because max word size is 8
+  while ((currentChar = fgetc(fp)) != '\n')
+	if (currentChar == EOF)
+		fseek(fp, ftell(fp) - (rand() % 100), SEEK_SET);
+	// 8 because max word size is 8 + 1 because null character?
 	char* word = calloc(9, sizeof(char));
 	int currentIndex = 0;
-	while ((currentChar = fgetc(fp)) != '\n')
+	while ((currentChar = fgetc(fp)) != '\n' && currentChar != EOF)
 	{
 		word[currentIndex] = currentChar;
 		currentIndex++;
+
 		//if (currentIndex == 7)
 		//	break;
 	}
 	//word[currentIndex] = 0; // null character
-	
+
 	return word;
 }
 
 FILE* openFile(char* fileName, char* openType)
 {
 	FILE* file = fopen(fileName, openType);
-	
+
 	if (file == NULL)
 	{
 		printf("File could not be opened.");
@@ -255,9 +272,9 @@ FILE* openFile(char* fileName, char* openType)
 
 char randomSpecialCharacter()
 {
-	static const char* specialCharacters = "!@#$%^&*()_+{}|:<>?~`";
+	static const char* specialCharacters = "!^*_+|<>~";
 	char ret = specialCharacters[random() % (sizeof(specialCharacters) / sizeof(specialCharacters[0]))];
-	printf("Random special character returned: %c (%d)", ret, ret);
+	//printf("Random special character returned: %c (%d)", ret, ret);
 	return ret;
 }
 
