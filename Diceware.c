@@ -9,8 +9,10 @@ FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
 void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
-void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
+
 // this function frees all of the words while it is creating the final string
+void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
+
 void testFile();
 
 // pass in number of words
