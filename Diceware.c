@@ -236,17 +236,20 @@ void semiDestructiveTransformPassword(char** wordList, int numWords, char* trans
  */
 char* getRandomWord(FILE* fp, int fileLength)
 {
-	fseek(fp, rand() % fileLength, SEEK_SET);
+	do
+	{
+		fseek(fp, rand() % fileLength, SEEK_SET);
+	} while (ftell(fp) + 16 > fileLength);
+
 	char currentChar;
-  while ((currentChar = fgetc(fp)) != '\n')
-	if (currentChar == EOF)
-		fseek(fp, ftell(fp) - (rand() % 100), SEEK_SET);
+  while ((currentChar = fgetc(fp)) != '\n');
+
 	// 8 because max word size is 8 + 1 because null character?
 	char* word = malloc(9 * sizeof(char));
 	//13.539 seconds with calloc
 	//12.974 seconds with malloc
 	int currentIndex = 0;
-	while ((currentChar = fgetc(fp)) != '\n' && currentChar != EOF)
+	while ((currentChar = fgetc(fp)) != '\n')
 	{
 		word[currentIndex] = currentChar;
 		currentIndex++;
