@@ -7,8 +7,11 @@ Word lists were gotten from:
  - https://github.com/first20hours/google-10000-english/blob/master/20k.txt
  - https://github.com/first20hours/google-10000-english/blob/master/google-10000-english-usa-no-swears-medium.txt  
  
-They were then filtered to remove words less than 4 characters and greater than 8 characters.  
+They were then filtered to remove words less than 5 characters and greater than 8 characters.  
 *Usage*  
+```c
+DiceWare <Words per password entry> [<Number of passwords> = 1] [<Name of Transformation File>]
+```
 
 Since the code is written in C and not a JVM language, it will most likely be necessary to compile it manually. However, if by some miracle you are running 64-bit Ubuntu, you may be able to run the pre-compiled binary.
 If you are on Windows, putting your compiled code into your PATH will allow you to call it from any directory.
