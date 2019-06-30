@@ -244,10 +244,7 @@ void semiDestructiveTransformPassword(char** wordList, int numWords, char* trans
  */
 char* getRandomWord(FILE* fp, int fileLength)
 {
-	do
-	{
-		fseek(fp, rand() % fileLength, SEEK_SET);
-	} while (ftell(fp) + 16 > fileLength);
+	fseek(fp, rand() % (fileLength - 16), SEEK_SET);
 
 	char currentChar;
   while ((currentChar = fgetc(fp)) != '\n');
