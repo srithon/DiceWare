@@ -9,6 +9,9 @@ FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
 void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
+int loadPasswordList(FILE* fp, char** destination); //returns number of words (exactly)
+
+int RFA_THRESHOLD = 100;
 
 // this function frees all of the words while it is creating the final string
 void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
@@ -167,6 +170,23 @@ char*** getPasswords(int n, int numPasswords)
 	srand(time(0));
 	//char** words = malloc(n * sizeof(char*));
 	char*** passwords = malloc(numPasswords * sizeof(char**));
+	char** passwordList;
+	char rfaVsArray = 1; //rfa	
+	int numberOfWordsInDictionary;
+	
+	printf("%d > %d?\n", n * numPasswords, RFA_THRESHOLD);
+
+	if (n * numPasswords > RFA_THRESHOLD)
+	{
+		rfaVsArray = 0; //array
+		//approximate number of words
+		int numCharacters = lengthOfFile(fp);
+		int approximateNumWords = numCharacters / 5;
+		approximateNumWords++;
+		printf("Approximate Number of Words: %d\n", approximateNumWords);
+		passwordList = malloc(approximateNumWords * sizeof(char*));
+		numberOfWordsInDictionary = loadPasswordList(fp, passwordList);
+	}
 
 	int i, j;
 	for (j = 0; j < numPasswords; j++)
@@ -174,13 +194,41 @@ char*** getPasswords(int n, int numPasswords)
 		passwords[j] = malloc(n * sizeof(char*));
 		for (i = 0; i < n; i++)
 		{
-			passwords[j][i] = getRandomWord(fp, fileLength);
+			if (rfaVsArray)
+				passwords[j][i] = getRandomWord(fp, fileLength);
+			else
+				passwords[j][i] = passwordList[random() % numberOfWordsInDictionary];
 			//printf(words[i] + " ");
 			//free(words[i]);
 		}
 	}
 	fclose(fp);
 	return passwords;
+}
+
+int loadPasswordList(FILE* fp, char** destination)
+{
+	printf("Loading dictionary into array\n");
+	fseek(fp, 0, SEEK_SET);
+	char currentChar = 0;
+	int currentIndexInWord = 0;
+	int lines = 0;
+	destination[0] = malloc(9 * sizeof(char));
+	while ((currentChar = fgetc(fp)) != EOF)
+	{
+		if (currentChar == '\n')
+		{
+			destination[lines][currentIndexInWord] = 0;
+			lines++;
+			currentIndexInWord = 0;
+			destination[lines] = malloc(9 * sizeof(char));
+		}
+		else
+		{
+			destination[lines][currentIndexInWord++] = currentChar;
+		}
+	}
+	return lines + 1;
 }
 
 void transformPassword(char** password, char* transformationTable)
