@@ -22,7 +22,7 @@ void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
 int loadPasswordList(FILE* fp, Word** destination); //returns number of words (exactly)
 
-int RFA_THRESHOLD = 100;
+int RFA_THRESHOLD = 250;
 char rfaVsArray = 0;
 
 // this function frees all of the words while it is creating the final string
@@ -178,7 +178,10 @@ int main(int argc, char ** argv)
 				{
 					printf("%s ", passwords[password][word]->wordString);
 					if (passwords[password][word]->numReferences-- == 1)
+					{
 						free(passwords[password][word]->wordString);
+						free(passwords[password][word]);
+					}
 				}
 				printf("\n");
 			}
@@ -219,7 +222,7 @@ void* getPasswords(int n, int numPasswords)
 	//char*** passwords = malloc(numPasswords * sizeof(char**));
 	void* passwords;
 
-	Word** passwordList;
+	Word** passwordList = NULL;
 	rfaVsArray = 0; //rfa	
 	int numberOfWordsInDictionary;
 
@@ -264,12 +267,26 @@ void* getPasswords(int n, int numPasswords)
 				castedPasswords[j][i] = passwordList[random() % numberOfWordsInDictionary];
 				castedPasswords[j][i]->numReferences++;
 
-				if (castedPasswords[j][i]->numReferences != 1)
-					printf("\n\n\n%s has  %ld references\n\n\n", castedPasswords[j][i]->wordString, castedPasswords[j][i]->numReferences);
+				//if (castedPasswords[j][i]->numReferences != 1)
+				//	printf("\n\n\n%s has  %ld references\n\n\n", castedPasswords[j][i]->wordString, castedPasswords[j][i]->numReferences);
 			}
 		}
+		
+		//remove all words with no references
+		for (i = 0; i < numberOfWordsInDictionary; i++)
+        	{
+                	if (passwordList[i]->numReferences == 0)
+                	{
+                        	free(passwordList[i]->wordString);
+                        	free(passwordList[i]);
+                	}
+       		}
+
 	}
 
+	if (passwordList != NULL)
+		free(passwordList);
+	
 	fclose(fp);
 	return passwords;
 }
