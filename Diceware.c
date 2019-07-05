@@ -3,15 +3,27 @@
 #include <time.h>
 #include <string.h>
 
-char*** getPasswords(int passwordLength, int numPasswords);
+/*
+ * Depending on number of words requested, will
+ * return either an Word** or char***
+ */
+
+typedef struct _Word
+{
+	char* wordString;
+	int64_t numReferences;
+} Word;
+
+void* getPasswords(int passwordLength, int numPasswords);
 char* getRandomWord(FILE* fp, int fileLength);
 FILE* openFile(char* fileName, char* openType);
 int lengthOfFile(FILE* fp);
 void transformPassword(char** password, char* transformationTable);
 char randomSpecialCharacter();
-int loadPasswordList(FILE* fp, char** destination); //returns number of words (exactly)
+int loadPasswordList(FILE* fp, Word** destination); //returns number of words (exactly)
 
 int RFA_THRESHOLD = 100;
+char rfaVsArray = 0;
 
 // this function frees all of the words while it is creating the final string
 void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
@@ -21,6 +33,8 @@ void testFile();
 // pass in number of words
 int main(int argc, char ** argv)
 {
+	//printf("%ld\n", sizeof(Word));
+	//return 0;
 	if (argc == 1)
 	{
 		printf("Pass in the number of words wanted!\n");
@@ -103,7 +117,7 @@ int main(int argc, char ** argv)
 		return 1;
 	}
 
-	char*** passwords = getPasswords(n, numPasswords);
+	void* voidPasswords = getPasswords(n, numPasswords);
 
 	int word, password;
 
@@ -114,33 +128,65 @@ int main(int argc, char ** argv)
 	{
 		transformedPassword = calloc(bufferSize, sizeof(char));
 	}
-		// 9 chars: (8 char max word length + 1 null character + 1 dividing character) - 1 because no dividing character at the end
+	// 9 chars: (8 char max word length + 1 null character + 1 dividing character) - 1 because no dividing character at the end
 
-	for (password = 0; password < numPasswords; password++)
+	if (rfaVsArray == 0) //rfa
 	{
-		//if (transform == 1)
-		//	transformPassword(passwords[password], transformationTable);
+		char*** passwords = (char***) voidPasswords;
+		for (password = 0; password < numPasswords; password++)
+		{
+			//if (transform == 1)
+			//      transformPassword(passwords[password], transformationTable);
 
-		if (transform == 1)
-		{
-			//this function frees all the words!
-			semiDestructiveTransformPassword(passwords[password], n, transformationTable, transformedPassword, bufferSize);
-			printf("%s\n", transformedPassword);
-		}
-		else
-		{
-			for (word = 0; word < n; word++)
+			if (transform == 1)
 			{
-				printf("%s ", passwords[password][word]);
-				free(passwords[password][word]);
+				//this function frees all the words!
+				semiDestructiveTransformPassword(passwords[password], n, transformationTable, transformedPassword, bufferSize);
+				printf("%s\n", transformedPassword);
 			}
-			printf("\n");
+			else
+			{
+				for (word = 0; word < n; word++)
+				{
+					printf("%s ", passwords[password][word]);
+					free(passwords[password][word]);
+				}
+				printf("\n");
+			}
+
+			free(passwords[password]);
 		}
-
-		free(passwords[password]);
+		free(passwords);
 	}
+	else // array
+	{
+		Word*** passwords = (Word***) voidPasswords;
+		for (password = 0; password < numPasswords; password++)
+		{
+			//if (transform == 1)
+			//      transformPassword(passwords[password], transformationTable);
 
-	free(passwords);
+			if (transform == 1)
+			{
+				//this function frees all the words!
+				//semiDestructiveTransformPasswordArray(passwords[password], n, transformationTable, transformedPassword, bufferSize);
+				printf("%s\n", transformedPassword);
+			}
+			else
+			{
+				for (word = 0; word < n; word++)
+				{
+					printf("%s ", passwords[password][word]->wordString);
+					if (passwords[password][word]->numReferences-- == 1)
+						free(passwords[password][word]->wordString);
+				}
+				printf("\n");
+			}
+
+			free(passwords[password]);
+		}
+		free(passwords);
+	}
 
 	if (transform == 1)
 		free(transformedPassword);
@@ -163,69 +209,95 @@ void testFile()
 	}
 }
 
-char*** getPasswords(int n, int numPasswords)
+void* getPasswords(int n, int numPasswords)
 {
 	FILE* fp = openFile("WordListFinal", "r");
-        int fileLength = lengthOfFile(fp);
+	int fileLength = lengthOfFile(fp);
 	srand(time(0));
 	//char** words = malloc(n * sizeof(char*));
-	char*** passwords = malloc(numPasswords * sizeof(char**));
-	char** passwordList;
-	char rfaVsArray = 1; //rfa	
+
+	//char*** passwords = malloc(numPasswords * sizeof(char**));
+	void* passwords;
+
+	Word** passwordList;
+	rfaVsArray = 0; //rfa	
 	int numberOfWordsInDictionary;
-	
+
 	printf("%d > %d?\n", n * numPasswords, RFA_THRESHOLD);
 
 	if (n * numPasswords > RFA_THRESHOLD)
 	{
-		rfaVsArray = 0; //array
+		rfaVsArray = 1; //array
 		//approximate number of words
 		int numCharacters = lengthOfFile(fp);
 		int approximateNumWords = numCharacters / 5;
 		approximateNumWords++;
 		printf("Approximate Number of Words: %d\n", approximateNumWords);
-		passwordList = malloc(approximateNumWords * sizeof(char*));
+		passwordList = malloc(approximateNumWords * sizeof(Word*));
 		numberOfWordsInDictionary = loadPasswordList(fp, passwordList);
+		passwords = malloc(numPasswords * sizeof(Word*));
+	}
+	else
+	{
+		passwords = malloc(numPasswords * sizeof(char*));
 	}
 
 	int i, j;
-	for (j = 0; j < numPasswords; j++)
+	if (rfaVsArray == 0) //rfa
 	{
-		passwords[j] = malloc(n * sizeof(char*));
-		for (i = 0; i < n; i++)
+		char*** castedPasswords = (char***) passwords;
+		for (j = 0; j < numPasswords; j++)
 		{
-			if (rfaVsArray)
-				passwords[j][i] = getRandomWord(fp, fileLength);
-			else
-				passwords[j][i] = passwordList[random() % numberOfWordsInDictionary];
-			//printf(words[i] + " ");
-			//free(words[i]);
+			castedPasswords[j] = malloc(n * sizeof(char*));
+			for (i = 0; i < n; i++)
+				castedPasswords[j][i] = getRandomWord(fp, fileLength);
 		}
 	}
+	else //array
+	{
+		Word*** castedPasswords = (Word***) passwords;
+		for (j = 0; j < numPasswords; j++)
+		{
+			castedPasswords[j] = malloc(n * sizeof(Word));
+			for (i = 0; i < n; i++)
+			{
+				castedPasswords[j][i] = passwordList[random() % numberOfWordsInDictionary];
+				castedPasswords[j][i]->numReferences++;
+
+				if (castedPasswords[j][i]->numReferences != 1)
+					printf("\n\n\n%s has  %ld references\n\n\n", castedPasswords[j][i]->wordString, castedPasswords[j][i]->numReferences);
+			}
+		}
+	}
+
 	fclose(fp);
 	return passwords;
 }
 
-int loadPasswordList(FILE* fp, char** destination)
+int loadPasswordList(FILE* fp, Word** destination)
 {
 	printf("Loading dictionary into array\n");
 	fseek(fp, 0, SEEK_SET);
 	char currentChar = 0;
 	int currentIndexInWord = 0;
 	int lines = 0;
-	destination[0] = malloc(9 * sizeof(char));
+	destination[0] = malloc(sizeof(Word));
+	destination[0]->wordString = malloc(9 * sizeof(char));
+	destination[0]->numReferences = 0;
 	while ((currentChar = fgetc(fp)) != EOF)
 	{
 		if (currentChar == '\n')
 		{
-			destination[lines][currentIndexInWord] = 0;
+			destination[lines]->wordString[currentIndexInWord] = 0;
 			lines++;
 			currentIndexInWord = 0;
-			destination[lines] = malloc(9 * sizeof(char));
+			destination[lines] = malloc(sizeof(Word));
+			destination[lines]->wordString = malloc(9 * sizeof(char));
+			destination[lines]->numReferences = 0;
 		}
 		else
 		{
-			destination[lines][currentIndexInWord++] = currentChar;
+			destination[lines]->wordString[currentIndexInWord++] = currentChar;
 		}
 	}
 	return lines + 1;
@@ -267,7 +339,7 @@ void semiDestructiveTransformPassword(char** wordList, int numWords, char* trans
 
 				destinationBuffer[currentIndex] =
 					(transformationCharacter == -1) ?
-						randomSpecialCharacter() : transformationCharacter;
+					randomSpecialCharacter() : transformationCharacter;
 			}
 			else
 			{
@@ -297,7 +369,7 @@ char* getRandomWord(FILE* fp, int fileLength)
 	fseek(fp, rand() % (fileLength - 16), SEEK_SET);
 
 	char currentChar;
-  while ((currentChar = fgetc(fp)) != '\n');
+	while ((currentChar = fgetc(fp)) != '\n');
 
 	// 8 because max word size is 8 + 1 because null character?
 	char* word = malloc(9 * sizeof(char));
