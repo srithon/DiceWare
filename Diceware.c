@@ -226,7 +226,7 @@ void* getPasswords(int n, int numPasswords)
 	rfaVsArray = 0; //rfa	
 	int numberOfWordsInDictionary;
 
-	printf("%d > %d?\n", n * numPasswords, RFA_THRESHOLD);
+	//printf("%d > %d?\n", n * numPasswords, RFA_THRESHOLD);
 
 	if (n * numPasswords > RFA_THRESHOLD)
 	{
@@ -235,7 +235,7 @@ void* getPasswords(int n, int numPasswords)
 		int numCharacters = lengthOfFile(fp);
 		int approximateNumWords = numCharacters / 5;
 		approximateNumWords++;
-		printf("Approximate Number of Words: %d\n", approximateNumWords);
+		//printf("Approximate Number of Words: %d\n", approximateNumWords);
 		passwordList = malloc(approximateNumWords * sizeof(Word*));
 		numberOfWordsInDictionary = loadPasswordList(fp, passwordList);
 		passwords = malloc(numPasswords * sizeof(Word*));
@@ -293,7 +293,7 @@ void* getPasswords(int n, int numPasswords)
 
 int loadPasswordList(FILE* fp, Word** destination)
 {
-	printf("Loading dictionary into array\n");
+	//printf("Loading dictionary into array\n");
 	fseek(fp, 0, SEEK_SET);
 	char currentChar = 0;
 	int currentIndexInWord = 0;
