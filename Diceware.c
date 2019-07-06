@@ -405,8 +405,12 @@ void semiDestructiveTransformPasswordWordStruct(Word** wordList, int numWords, c
                         }
                         //printf("i: %d; destinationBuffer: %s\n", i, destinationBuffer);
                 }
-
-                free(wordList[i]);
+		
+		if (wordList[i]->numReferences-- == 1)
+		{
+			free(wordList[i]->wordString);
+                	free(wordList[i]);
+		}
         }
 
         //for (int i = currentIndex; i < bufferSize; i++)
