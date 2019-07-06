@@ -318,6 +318,7 @@ int loadPasswordList(FILE* fp, Word** destination)
 			destination[lines]->wordString[currentIndexInWord++] = currentChar;
 		}
 	}
+	destination[lines]->wordString[currentIndexInWord] = 0;
 	return lines + 1;
 }
 
