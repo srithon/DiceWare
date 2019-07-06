@@ -27,6 +27,7 @@ char rfaVsArray = 0;
 
 // this function frees all of the words while it is creating the final string
 void semiDestructiveTransformPassword(char** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
+void semiDestructiveTransformPasswordWordStruct(Word** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize);
 
 void testFile();
 
@@ -169,7 +170,7 @@ int main(int argc, char ** argv)
 			if (transform == 1)
 			{
 				//this function frees all the words!
-				//semiDestructiveTransformPasswordArray(passwords[password], n, transformationTable, transformedPassword, bufferSize);
+				semiDestructiveTransformPasswordWordStruct(passwords[password], n, transformationTable, transformedPassword, bufferSize);
 				printf("%s\n", transformedPassword);
 			}
 			else
@@ -372,6 +373,47 @@ void semiDestructiveTransformPassword(char** wordList, int numWords, char* trans
 		destinationBuffer[i] = 0;
 
 	//free(wordList);		already freeing in calling function
+}
+
+void semiDestructiveTransformPasswordWordStruct(Word** wordList, int numWords, char* transformationTable, char* destinationBuffer, int bufferSize)
+{
+        unsigned char transformationCharacter = 0;
+        unsigned int currentIndex = 0;
+        char transformSpace = transformationTable[' '];
+        for (int i = 0; i < numWords; i++)
+        {
+                //printf("i: %d; Original Word: %s\n", i, wordList[i]);
+                if (i != 0)
+                        if (transformSpace != ' ' && random() % 3 == 0)
+                                destinationBuffer[currentIndex++] = (transformSpace == -1) ? randomSpecialCharacter() : transformSpace;
+                        else
+                                destinationBuffer[currentIndex++] = ' ';
+                for (int j = 0; j < strlen(wordList[i]->wordString); j++, currentIndex++) // -1 because last character is a null character
+                {
+                        if (random() % 3 == 0)
+                        {
+                                transformationCharacter = transformationTable[wordList[i]->wordString[j]];
+
+                                destinationBuffer[currentIndex] =
+                                        (transformationCharacter == -1) ?
+                                        randomSpecialCharacter() : transformationCharacter;
+                        }
+                        else
+                        {
+                                destinationBuffer[currentIndex] = wordList[i]->wordString[j];
+                        }
+                        //printf("i: %d; destinationBuffer: %s\n", i, destinationBuffer);
+                }
+
+                free(wordList[i]);
+        }
+
+        //for (int i = currentIndex; i < bufferSize; i++)
+        //        destinationBuffer[i] = 0;
+
+	destinationBuffer[currentIndex] = 0;
+
+        //free(wordList);               already freeing in calling function
 }
 
 /*
