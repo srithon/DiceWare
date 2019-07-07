@@ -7,8 +7,9 @@ Word lists were gotten from:
  - https://github.com/first20hours/google-10000-english/blob/master/20k.txt
  - https://github.com/first20hours/google-10000-english/blob/master/google-10000-english-usa-no-swears-medium.txt  
  
-They were then filtered to remove words less than 5 characters and greater than 8 characters, and then filtered again to remove words in this list of profanity
+They were then filtered to remove words less than 5 characters and greater than 8 characters, and then filtered again to remove words in these lists of profanity
  - https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/  
+ - https://www.freewebheaders.com/full-list-of-bad-words-banned-by-google/
  
 *Usage*  
 ```c
