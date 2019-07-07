@@ -7,7 +7,9 @@ Word lists were gotten from:
  - https://github.com/first20hours/google-10000-english/blob/master/20k.txt
  - https://github.com/first20hours/google-10000-english/blob/master/google-10000-english-usa-no-swears-medium.txt  
  
-They were then filtered to remove words less than 5 characters and greater than 8 characters.  
+They were then filtered to remove words less than 5 characters and greater than 8 characters, and then filtered again to remove words in this list of profanity
+ - https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/  
+ 
 *Usage*  
 ```c
 DiceWare <Words per password entry> [<Number of passwords> = 1] [<Name of Transformation File>]
